@@ -1,0 +1,80 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ------------------------------------------------------------------ */
+/* Design tokens as CSS variables (mirror DESIGN_RULES.md §1, for raw   */
+/* usage outside Tailwind). Tailwind reads hex directly from config.    */
+/* ------------------------------------------------------------------ */
+:root {
+  --cream: #fff8f5;
+  --cream-deep: #fff0ea;
+  --card: #fffdfb;
+  --pink-soft: #ffd6e0;
+  --blush: #ffb6c7;
+  --strawberry: #ff7a9a;
+  --strawberry-deep: #f2557a;
+  --cherry: #7a2233;
+  --cherry-soft: #9c4a5a;
+  --cherry-faint: #a35e6c;
+  --lavender: #d9c7ff;
+  --lavender-deep: #b79cf0;
+  --mint: #c7f0de;
+  --butter: #ffe9b8;
+  --border: #ffe0e7;
+  --border-strong: #ffb6c7;
+  --danger: #e0566b;
+  --danger-soft: #ffe3e8;
+  --success: #3fa77e;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-cream font-body text-cherry antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  h1,
+  h2,
+  h3 {
+    @apply font-display;
+    letter-spacing: -0.01em;
+  }
+  ::selection {
+    background: var(--pink-soft);
+    color: var(--cherry);
+  }
+  /* Warm, on-brand focus ring everywhere; never the default blue.
+     A solid offset outline is the guaranteed indicator on EVERY focusable
+     element (components may layer an extra soft `shadow-glow` on top). */
+  :focus-visible {
+    outline: 2px solid var(--strawberry-deep);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+@layer utilities {
+  /* Hide content visually but keep it for screen readers */
+  .sr-only-focusable:not(:focus):not(:focus-within) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+  }
+}
+
+/* Respect reduced motion globally (decorations also opt out in JS) */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
