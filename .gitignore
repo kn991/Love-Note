@@ -22,3 +22,6 @@ node_modules/
 
 # ── local tooling ────────────────────────────────────────────────────────
 .claude/
+
+# ── deploy: TLS certs & private keys (NEVER commit) ────────────────────────
+nginx/certbot/
