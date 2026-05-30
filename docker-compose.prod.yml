@@ -1,10 +1,15 @@
-# ── lovenote · PRODUCTION stack for littlehomie.tech ───────────────────────
-# nginx terminates TLS and reverse-proxies to the frontend + backend.
-# Certificates are issued by Let's Encrypt (certbot) — run nginx/init-letsencrypt.sh once.
+# ── lovenote · PRODUCTION stack for littlehomie.tech (behind Cloudflare) ────
+# Cloudflare terminates the public TLS handshake and proxies to this origin.
+# nginx presents a self-signed cert on :443 (accepted by Cloudflare "Full" mode)
+# and also serves :80, so it works in any Cloudflare SSL/TLS mode.
 #
 #   cp .env.prod.example .env           # fill in DB password + 3 secrets
-#   sh nginx/init-letsencrypt.sh        # first time only: obtain TLS cert
+#   sh nginx/gen-selfsigned.sh          # first time only: make the origin cert
 #   docker compose -f docker-compose.prod.yml up -d --build
+#
+# Then in the Cloudflare dashboard: SSL/TLS → Overview → set encryption mode
+# to "Full", and make sure the DNS A record for littlehomie.tech is proxied
+# (orange cloud). Open ports 80 and 443 in the server's firewall.
 services:
   db:
     image: postgres:16-alpine
@@ -51,6 +56,8 @@ services:
       APP_PUBLIC_URL: https://littlehomie.tech
       COOKIE_SECURE: "true"
       COOKIE_SAMESITE: Lax
+      # nginx is one trusted hop; it sets X-Forwarded-Proto=https (Cloudflare is
+      # in front of nginx but only nginx talks to the backend directly).
       PROXY_FIX_HOPS: "1"
     expose:
       - "5000"            # internal only — never published to the host
@@ -83,21 +90,7 @@ services:
       - "443:443"
     volumes:
       - ./nginx/conf.d:/etc/nginx/conf.d:ro
-      - ./nginx/certbot/conf:/etc/letsencrypt:ro
-      - ./nginx/certbot/www:/var/www/certbot:ro
-    # Reload every 6h so renewed certificates are picked up without downtime.
-    command: >-
-      /bin/sh -c "while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g 'daemon off;'"
-
-  certbot:
-    image: certbot/certbot
-    restart: unless-stopped
-    volumes:
-      - ./nginx/certbot/conf:/etc/letsencrypt
-      - ./nginx/certbot/www:/var/www/certbot
-    # Try to renew twice a day; certbot only acts when a cert is near expiry.
-    entrypoint: >-
-      /bin/sh -c "trap exit TERM; while :; do certbot renew --webroot -w /var/www/certbot; sleep 12h & wait $${!}; done"
+      - ./nginx/certs:/etc/nginx/certs:ro
 
 volumes:
   pgdata:

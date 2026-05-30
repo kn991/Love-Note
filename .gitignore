@@ -25,3 +25,4 @@ node_modules/
 
 # ── deploy: TLS certs & private keys (NEVER commit) ────────────────────────
 nginx/certbot/
+nginx/certs/
